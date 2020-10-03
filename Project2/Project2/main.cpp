@@ -66,16 +66,16 @@ void Initialize() {
     // Initialize the pong ball
     state.ball = new Entity();
 
-    state.ball->modelMatrix = glm::scale(modelMatrix, glm::vec3(0.25f, 0.25f, 1.0f));
+    state.ball->vertices = new float[] { -0.1f, -0.1f, 0.1f, -0.1f, 0.1f, 0.1f, -0.1f, -0.1f, 0.1f, 0.1f, -0.1f, 0.1f };
 
     // Initialize player paddles
     state.players = new Entity[NUM_PLAYERS];
 
-    state.players[0].modelMatrix = glm::scale(modelMatrix, glm::vec3(0.25f, 1.5f, 1.0f));
-    state.players[1].modelMatrix = glm::scale(modelMatrix, glm::vec3(0.25f, 1.5f, 1.0f));
+    state.players[0].vertices = new float[] { -0.2f, -1.0f, 0.2f, -1.0f, 0.2f, 1.0f, -0.2f, -1.0f, 0.2f, 1.0f, -0.2f, 1.0f };
+    state.players[1].vertices = new float[] { -0.2f, -1.0f, 0.2f, -1.0f, 0.2f, 1.0f, -0.2f, -1.0f, 0.2f, 1.0f, -0.2f, 1.0f };
 
-    state.players[0].position = glm::vec3(-0.01f, 0.0f, 0.0f);
-    state.players[1].position = glm::vec3(0.01f, 0.0f, 0.0f);
+    state.players[0].position = glm::vec3(-4.8f, 0.0f, 0.0f);
+    state.players[1].position = glm::vec3(4.8f, 0.0f, 0.0f);
 
     state.players[0].speed = 2.0f;
     state.players[1].speed = 2.0f;
@@ -100,7 +100,7 @@ void ProcessInput() {
                 mode = GAME;
                 state.ball->movement.x = 1.0f;
                 state.ball->movement.y = 1.0f;
-                state.ball->speed = 7.0f;
+                state.ball->speed = 3.0f;
             }
         }
     }
@@ -108,17 +108,17 @@ void ProcessInput() {
     const Uint8* keys = SDL_GetKeyboardState(NULL);
 
     if (mode == GAME) {
-        if (keys[SDL_SCANCODE_W] && (state.players[0].position.y <= 2.0f)) {
+        if (keys[SDL_SCANCODE_W] && (state.players[0].position.y <= 2.75f)) {
             state.players[0].movement.y = 1.0f;
         }
-        else if (keys[SDL_SCANCODE_S] && (state.players[0].position.y >= -2.0f)) {
+        else if (keys[SDL_SCANCODE_S] && (state.players[0].position.y >= -2.75f)) {
             state.players[0].movement.y = -1.0f;
         }
 
-        if (keys[SDL_SCANCODE_UP] && (state.players[1].position.y <= 2.0f)) {
+        if (keys[SDL_SCANCODE_UP] && (state.players[1].position.y <= 2.75f)) {
             state.players[1].movement.y = 1.0f;
         }
-        else if (keys[SDL_SCANCODE_DOWN] && (state.players[1].position.y >= -2.0f)) {
+        else if (keys[SDL_SCANCODE_DOWN] && (state.players[1].position.y >= -2.75f)) {
             state.players[1].movement.y = -1.0f;
         }
     }
@@ -140,29 +140,41 @@ void Update() {
     float xdiff, ydiff;
 
     // collision detection between pong ball and player paddle 0
-    xdiff = fabs(state.ball->position.x - state.players[0].position.x) - ((0.25 + 0.25) / 2.0f);
-    ydiff = fabs(state.ball->position.y - state.players[0].position.y) - ((0.25 + 1.5) / 2.0f);
+    xdiff = fabs(state.ball->position.x - state.players[0].position.x) - ((0.2 + 0.4) / 2.0f);
+    ydiff = fabs(state.ball->position.y - state.players[0].position.y) - ((0.2 + 2) / 2.0f);
 
     if (xdiff < 0 && ydiff < 0) {
         state.ball->movement.x = 1;
     }
     
     // collision detection between pong ball and player paddle 1
-    xdiff = fabs(state.ball->position.x - state.players[1].position.x) - ((0.25 + 0.25) / 2.0f);
-    ydiff = fabs(state.ball->position.y - state.players[1].position.y) - ((0.25 + 1.5) / 2.0f);
+    xdiff = fabs(state.ball->position.x - state.players[1].position.x) - ((0.2 + 0.4) / 2.0f);
+    ydiff = fabs(state.ball->position.y - state.players[1].position.y) - ((0.2 + 2) / 2.0f);
 
     if (xdiff < 0 && ydiff < 0) {
         state.ball->movement.x = 1;
     }
 
     // collision detection between pong ball and top edge
-    if (state.ball->position.y + 0.25 >= 15) {
+    if (state.ball->position.y + 0.1 >= 3.75) {
         state.ball->movement.y = -1;
     }
 
     // collision detection between pong ball and bottom edge
-    if (state.ball->position.y - 0.25 <= -15) {
+    if (state.ball->position.y - 0.1 <= -3.75) {
         state.ball->movement.y = 1;
+    }
+
+    // collision detection between pong ball and right edge
+    if (state.ball->position.x + 0.1 >= 5.0) {
+        state.ball->movement = glm::vec3(0);
+        mode = GAME_OVER;
+    }
+
+    // collision detection between pong ball and left edge
+    if (state.ball->position.x - 0.1 <= -5.0) {
+        state.ball->movement = glm::vec3(0);
+        mode = GAME_OVER;
     }
 }
 

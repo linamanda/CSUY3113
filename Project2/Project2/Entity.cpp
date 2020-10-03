@@ -10,13 +10,13 @@ Entity::Entity() {
 void Entity::Update(float deltaTime) {
     position += movement * speed * deltaTime;
 
+    modelMatrix = glm::mat4(1.0f);
     modelMatrix = glm::translate(modelMatrix, position);
 }
 
 void Entity::Render(ShaderProgram* program) {
 	program->SetModelMatrix(modelMatrix);
 
-    float vertices[] = { -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5 };
     float texCoords[] = { 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0 };
 
     glVertexAttribPointer(program->positionAttribute, 2, GL_FLOAT, false, 0, vertices);

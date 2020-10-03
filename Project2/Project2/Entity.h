@@ -14,6 +14,7 @@
 class Entity {
 public:
 	glm::mat4 modelMatrix;
+	float* vertices;
 
 	glm::vec3 position;
 	glm::vec3 movement;
