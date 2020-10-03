@@ -1,0 +1,2 @@
+C:/Users/Amanda/OneDrive/Tandon/Introduction to Game Programming/Guida's Repo/Templates/VisualStudioSDLProject/SDLProject/glm/out/build/x64-Debug (default)/CMakeFiles/edit_cache.dir
+C:/Users/Amanda/OneDrive/Tandon/Introduction to Game Programming/Guida's Repo/Templates/VisualStudioSDLProject/SDLProject/glm/out/build/x64-Debug (default)/CMakeFiles/rebuild_cache.dir
