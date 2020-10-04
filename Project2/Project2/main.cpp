@@ -152,7 +152,7 @@ void Update() {
     ydiff = fabs(state.ball->position.y - state.players[1].position.y) - ((0.2 + 2) / 2.0f);
 
     if (xdiff < 0 && ydiff < 0) {
-        state.ball->movement.x = 1;
+        state.ball->movement.x = -1;
     }
 
     // collision detection between pong ball and top edge
