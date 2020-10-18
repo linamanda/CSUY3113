@@ -219,11 +219,11 @@ void ProcessInput() {
     const Uint8* keys = SDL_GetKeyboardState(NULL);
 
     if (mode == IN_GAME) {
-        if (keys[SDL_SCANCODE_A] && (state.spaceship->position.x >= -3.5f) && (state.spaceship->position.y >= -2.25)) {
-            state.spaceship->acceleration.x = -37.0f;
+        if (keys[SDL_SCANCODE_A] || keys[SDL_SCANCODE_LEFT]) {
+            state.spaceship->acceleration.x -= 0.01f;
         }
-        else if (keys[SDL_SCANCODE_D] && (state.spaceship->position.x <= 3.5f) && (state.spaceship->position.y >= -2.25)) {
-            state.spaceship->acceleration.x = 37.0f;
+        else if (keys[SDL_SCANCODE_D] || keys[SDL_SCANCODE_RIGHT]) {
+            state.spaceship->acceleration.x += 0.01f;
         }
     }
 }
