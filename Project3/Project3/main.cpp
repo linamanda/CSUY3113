@@ -280,7 +280,7 @@ void Render() {
     state.spaceship->Render(&program);
 
     // Render result string
-    if ((state.spaceship->position.y <= -2.2f) && (state.spaceship->position.x >= 1.0f) && (state.spaceship->position.x <= 2.5f))
+    if ((state.spaceship->position.y <= -2.2f) && (state.spaceship->position.x >= 1.0f) && (state.spaceship->position.x <= 2.75f))
         DrawText(&program, LoadTexture("font.png"), "Mission Successful", 1.0, -0.5, glm::vec3(-4.0f, 0.0f, 0.0f));
     else if (mode == GAME_OVER)
         DrawText(&program, LoadTexture("font.png"), "Mission Failed", 1.0, -0.5, glm::vec3(-3.2f, 0.0f, 0.0f));
