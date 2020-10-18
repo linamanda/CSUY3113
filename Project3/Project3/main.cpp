@@ -25,7 +25,7 @@ glm::mat4 viewMatrix, modelMatrix, projectionMatrix;
 
 struct GameState {
     Entity* spaceship;
-    Entity* platforms;
+    Entity* landingPlatforms;
     Entity* walls;
 };
 
@@ -34,8 +34,8 @@ GameState state;
 enum GameMode { IN_GAME, GAME_OVER };
 GameMode mode = IN_GAME;
 
-#define MAX_WALLS 24
-#define MAX_PLATFORMS 2
+#define MAX_WALLS 30
+#define MAX_LANDING_PLATFORMS 2
 
 GLuint LoadTexture(const char* filePath) {
     int w, h, n;
@@ -146,6 +146,9 @@ void Initialize() {
     glm::vec3 currPosBottom = glm::vec3(-3.5f, -3.25f, 0.0f);
     glm::vec3 currPosRight = glm::vec3(4.5f, -2.25f, 0.0f);
 
+    glm::vec3 currPosPlat1 = glm::vec3(3.5f, 2.75f, 0.0f);
+    glm::vec3 currPosPlat2 = glm::vec3(-1.25f, -0.5f, 0.0f);
+
     for (int i = 0; i < MAX_WALLS; i++) {
         state.walls[i].textureID = wallTextureID;
         state.walls[i].vertices = new float[] { -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f };
@@ -157,26 +160,34 @@ void Initialize() {
             state.walls[i].position = currPosBottom;
             currPosBottom += glm::vec3(1.0f, 0.0f, 0.0f);
         }
-        else {
+        else if (i <= 24) {
             state.walls[i].position = currPosRight;
             currPosRight += glm::vec3(0.0f, 1.0f, 0.0f);
+        }
+        else if (i <= 27) {
+            state.walls[i].position = currPosPlat1;
+            currPosPlat1 += glm::vec3(-1.0f, 0.0f, 0.0f);
+        }
+        else {
+            state.walls[i].position = currPosPlat2;
+            currPosPlat2 += glm::vec3(1.0f, 0.0f, 0.0f);
         }
         state.walls[i].Update(0, NULL, 0);
     }
     
-    // Initialize platforms
-    state.platforms = new Entity[MAX_PLATFORMS];
+    // Initialize landing platforms
+    state.landingPlatforms = new Entity[MAX_LANDING_PLATFORMS];
     GLuint platformTextureID = LoadTexture("landingPlatform.png");
 
     glm::vec3 currPosPlat = glm::vec3(1.5f, -2.4f, 0.0f);
 
-    for (int i = 0; i < MAX_PLATFORMS; i++) {
-        state.platforms[i].textureID = platformTextureID;
-        state.platforms[i].vertices = new float[] { -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f };
-        state.platforms[i].position = currPosPlat;
+    for (int i = 0; i < MAX_LANDING_PLATFORMS; i++) {
+        state.landingPlatforms[i].textureID = platformTextureID;
+        state.landingPlatforms[i].vertices = new float[] { -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f };
+        state.landingPlatforms[i].position = currPosPlat;
         currPosPlat += glm::vec3(0.8f, 0.0f, 0.0f);
-        state.platforms[i].height = -0.6f;
-        state.platforms[i].Update(0, NULL, 0);
+        state.landingPlatforms[i].height = -0.6f;
+        state.landingPlatforms[i].Update(0, NULL, 0);
     }
 
     // Initialize spaceship
@@ -209,10 +220,10 @@ void ProcessInput() {
 
     if (mode == IN_GAME) {
         if (keys[SDL_SCANCODE_A] && (state.spaceship->position.x >= -3.5f) && (state.spaceship->position.y >= -2.25)) {
-            state.spaceship->movement.x = -1.0f;
+            state.spaceship->acceleration.x = -37.0f;
         }
         else if (keys[SDL_SCANCODE_D] && (state.spaceship->position.x <= 3.5f) && (state.spaceship->position.y >= -2.25)) {
-            state.spaceship->movement.x = 1.0f;
+            state.spaceship->acceleration.x = 37.0f;
         }
     }
 }
@@ -236,10 +247,13 @@ void Update() {
         }
 
         while (deltaTime >= FIXED_TIMESTEP) {
-            if (state.spaceship->position.y >= -2.25f)
-                state.spaceship->Update(FIXED_TIMESTEP, state.platforms, MAX_PLATFORMS);
-            else
-                mode = GAME_OVER;
+            state.spaceship->Update(FIXED_TIMESTEP, state.walls, MAX_WALLS);
+
+            for (int i = 0; i < MAX_WALLS; i++) {
+                if (state.spaceship->CheckCollision(&state.walls[i]))
+                    mode = GAME_OVER;
+            }
+
             deltaTime -= FIXED_TIMESTEP;
         }
 
@@ -258,9 +272,9 @@ void Render() {
     for (int i = 0; i < MAX_WALLS; i++)
         state.walls[i].Render(&program);
 
-    // Render platforms
-    for (int i = 0; i < MAX_PLATFORMS; i++)
-        state.platforms[i].Render(&program);
+    // Render landing platforms
+    for (int i = 0; i < MAX_LANDING_PLATFORMS; i++)
+        state.landingPlatforms[i].Render(&program);
 
     // Render spaceship
     state.spaceship->Render(&program);
