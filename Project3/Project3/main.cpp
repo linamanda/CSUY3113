@@ -151,7 +151,7 @@ void Initialize() {
 
     for (int i = 0; i < MAX_WALLS; i++) {
         state.walls[i].textureID = wallTextureID;
-        state.walls[i].vertices = new float[] { -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f };
+        state.walls[i].vertices = new float[12] { -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f };
         if (i <= 7) {
             state.walls[i].position = currPosLeft;
             currPosLeft += glm::vec3(0.0f, 1.0f, 0.0f);
@@ -183,7 +183,7 @@ void Initialize() {
 
     for (int i = 0; i < MAX_LANDING_PLATFORMS; i++) {
         state.landingPlatforms[i].textureID = platformTextureID;
-        state.landingPlatforms[i].vertices = new float[] { -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f };
+        state.landingPlatforms[i].vertices = new float[12] { -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f };
         state.landingPlatforms[i].position = currPosPlat;
         currPosPlat += glm::vec3(0.8f, 0.0f, 0.0f);
         state.landingPlatforms[i].height = -0.6f;
@@ -195,7 +195,7 @@ void Initialize() {
     GLuint spaceshipTextureID = LoadTexture("spaceship.png");
 
     state.spaceship->textureID = spaceshipTextureID;
-    state.spaceship->vertices = new float[] { -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f };
+    state.spaceship->vertices = new float[12] { -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f };
     state.spaceship->position = glm::vec3(0.0f, 4.25f, 0.0f);
     state.spaceship->speed = 1.0f;
     state.spaceship->acceleration = glm::vec3(0.0f, -0.3f, 0.0f);
