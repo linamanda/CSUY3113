@@ -22,6 +22,7 @@ glm::mat4 viewMatrix, modelMatrix, projectionMatrix;
 
 struct GameState {
     Entity* player;
+    Entity* weapon;
     Entity* enemies;
     Entity* platforms;
 };
@@ -34,6 +35,10 @@ GameMode mode = IN_GAME;
 #define MAX_GROUND_PLAT 10
 #define MAX_PLAT1 3
 #define MAX_PLAT2 4
+
+#define MAX_ENEMIES 3
+
+int activeEnemies = 3;
 
 void Initialize() {
     SDL_Init(SDL_INIT_VIDEO);
@@ -111,6 +116,49 @@ void Initialize() {
     state.player->speed = 2.0f;
     state.player->jumpPower = 8.0f;
     state.player->Update(0, NULL, NULL, 0);
+
+    // Initialize enemies
+    state.enemies = new Entity[MAX_ENEMIES];
+    GLuint dogEnemyTexID = Util::LoadTexture("dogEnemy.png");
+    GLuint catEnemyTexID = Util::LoadTexture("catEnemy.png");
+
+    state.enemies[0].textureID = dogEnemyTexID;
+    state.enemies[0].entityType = ENEMY;
+    state.enemies[0].aiType = PATROLLER;
+    state.enemies[0].aiState = WALKING_LEFT;
+    state.enemies[0].vertices = new float[12]{ -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f };
+    state.enemies[0].position = glm::vec3(-1.0f, 1.0f, 0.0f);
+    state.enemies[0].acceleration = glm::vec3(0.0f, -9.81f, 0.0f);
+    state.enemies[0].speed = 1.0f;
+    state.enemies[0].Update(0, state.player, state.platforms, MAX_GROUND_PLAT + MAX_PLAT1 + MAX_PLAT2);
+
+    state.enemies[1].textureID = dogEnemyTexID;
+    state.enemies[1].entityType = ENEMY;
+    state.enemies[1].aiType = WAITANDGO;
+    state.enemies[1].aiState = IDLE;
+    state.enemies[1].vertices = new float[12]{ -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f };
+    state.enemies[1].position = glm::vec3(3.75f, -1.0f, 0.0f);
+    state.enemies[1].acceleration = glm::vec3(0.0f, -9.81f, 0.0f);
+    state.enemies[1].speed = 1.0f;
+    state.enemies[1].Update(0, state.player, state.platforms, MAX_GROUND_PLAT + MAX_PLAT1 + MAX_PLAT2);
+
+    state.enemies[2].textureID = dogEnemyTexID;
+    state.enemies[2].entityType = ENEMY;
+    state.enemies[2].aiType = PATROLANDSPEEDUP;
+    state.enemies[2].aiState = WALKING_LEFT;
+    state.enemies[2].vertices = new float[12]{ -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f };
+    state.enemies[2].position = glm::vec3(3.75f, 1.75f, 0.0f);
+    state.enemies[2].acceleration = glm::vec3(0.0f, -9.81f, 0.0f);
+    state.enemies[2].speed = 1.0f;
+    state.enemies[2].jumpPower = 3.0f;
+    state.enemies[2].Update(0, state.player, state.platforms, MAX_GROUND_PLAT + MAX_PLAT1 + MAX_PLAT2);
+
+    // Initialize sword
+    state.weapon = new Entity();
+    state.weapon->entityType = WEAPON;
+    state.weapon->textureID = Util::LoadTexture("sword.png");
+    state.weapon->vertices = new float[12]{ -0.1f, -0.25f, 0.1f, -0.25f, 0.1f, 0.25f, -0.1f, -0.25f, 0.1f, 0.25f, -0.1f, 0.25f };
+    state.weapon->Update(0, state.player, state.enemies, MAX_ENEMIES);
 }
 
 void ProcessInput() {
@@ -136,11 +184,19 @@ void ProcessInput() {
     const Uint8* keys = SDL_GetKeyboardState(NULL);
 
     if (mode == IN_GAME) {
-        if (keys[SDL_SCANCODE_A] || keys[SDL_SCANCODE_LEFT]) {
+        if (keys[SDL_SCANCODE_LEFT]) {
             state.player->movement.x = -1.0f;
         }
-        else if (keys[SDL_SCANCODE_D] || keys[SDL_SCANCODE_RIGHT]) {
+        else if (keys[SDL_SCANCODE_RIGHT]) {
             state.player->movement.x = 1.0f;
+        }
+        if (keys[SDL_SCANCODE_X]) {
+            for (int i = 0; i < MAX_ENEMIES; i++) {
+                if ((state.weapon->isActive == true) && state.weapon->CheckCollision(&state.enemies[i])) {
+                    state.enemies[i].isActive = false;
+                    activeEnemies -= 1;
+                }
+            }
         }
     }
 }
@@ -165,6 +221,13 @@ void Update() {
         
         while (deltaTime >= FIXED_TIMESTEP) {
             state.player->Update(FIXED_TIMESTEP, state.player, state.platforms, MAX_GROUND_PLAT + MAX_PLAT1 + MAX_PLAT2);
+
+            for (int i = 0; i < MAX_ENEMIES; i++) {
+                state.enemies[i].Update(FIXED_TIMESTEP, state.player, state.platforms, MAX_GROUND_PLAT + MAX_PLAT1 + MAX_PLAT2);
+            }
+
+            state.weapon->Update(FIXED_TIMESTEP, state.player, state.enemies, MAX_ENEMIES);
+
             deltaTime -= FIXED_TIMESTEP;
         }
 
@@ -186,8 +249,23 @@ void Render() {
         state.platforms[i].Render(&program);
     }
 
+    // Render enemies
+    for (int i = 0; i < (MAX_ENEMIES); i++) {
+        if(state.enemies[i].isActive) state.enemies[i].Render(&program);
+    }
+
     // Render player
-    state.player->Render(&program);
+    if(state.player->isActive) state.player->Render(&program);
+
+    // Render weapon
+    if (state.player->isActive) state.weapon->Render(&program);
+
+    if (mode == WIN) {
+        Util::DrawText(&program, Util::LoadTexture("font.png"), "You Win!", 1.0, -0.5, glm::vec3(-1.25f, 0.0f, 0.0f));
+    }
+    else if (mode == LOSS) {
+        Util::DrawText(&program, Util::LoadTexture("font.png"), "You Lose!", 1.0, -0.5, glm::vec3(-1.75f, 0.0f, 0.0f));
+    }
 
     SDL_GL_SwapWindow(displayWindow);
 }
@@ -202,6 +280,14 @@ int main(int argc, char* argv[]) {
     while (gameIsRunning) {
         ProcessInput();
         Update();
+
+        if (activeEnemies == 0) {
+            mode = WIN;
+        }
+        if (state.player->isActive == false) {
+            mode = LOSS;
+        }
+
         Render();
     }
 

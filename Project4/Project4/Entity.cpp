@@ -65,17 +65,64 @@ void Entity::CheckCollisionsX(Entity* objects, int objectCount) {
 	}
 }
 
-//fix
 void Entity::AIPatroller() {
-	movement = glm::vec3(-1, 0, 0);
+	if ((aiState == WALKING_LEFT) && (position.x > -1.75))
+		movement = glm::vec3(-1, 0, 0);
+	else
+		aiState = WALKING_RIGHT;
+	
+	if ((aiState == WALKING_RIGHT) && (position.x < 0.75))
+		movement = glm::vec3(1, 0, 0);
+	else
+		aiState = WALKING_LEFT;
 }
 
-void Entity::AIJumper() {
-	;
+void Entity::AIPatrolAndSpeedUp(Entity* player) {
+	if ((aiState == WALKING_LEFT) && (position.x > 2.0f))
+		movement = glm::vec3(-1, 0, 0);
+	else
+		aiState = WALKING_RIGHT;
+
+	if ((aiState == WALKING_RIGHT) && (position.x < 4.5f))
+		movement = glm::vec3(1, 0, 0);
+	else
+		aiState = WALKING_LEFT;
+	
+	if ((glm::distance(position, player->position) < 3.0f)) {
+		if ((player->position.x < position.x) && (position.x > 2.0f)) {
+			movement = glm::vec3(-1, 0, 0);
+			speed = 2.0f;
+		}
+		else if ((player->position.x > position.x) && (position.x < 4.5f)) {
+			movement = glm::vec3(1, 0, 0);
+			speed = 2.0f;
+		}
+		else
+			speed = 0.0f;
+	}
+	else
+		speed = 1.0f;
 }
 
 void Entity::AIWaitAndGo(Entity* player) {
-	;
+	switch (aiState) {
+	case IDLE:
+		if (glm::distance(position, player->position) < 3.0f)
+			aiState = WALKING_LEFT;
+		break;
+	case WALKING_LEFT:
+		if (player->position.x < position.x)
+			movement = glm::vec3(-1, 0, 0);
+		else
+			aiState = WALKING_RIGHT;
+		break;
+	case WALKING_RIGHT:
+		if (player->position.x > position.x)
+			movement = glm::vec3(1, 0, 0);
+		else
+			aiState = WALKING_LEFT;
+		break;
+	}
 }
 
 void Entity::AI(Entity* player) {
@@ -84,17 +131,24 @@ void Entity::AI(Entity* player) {
 		AIPatroller();
 		break;
 
-	case JUMPER:
-		AIJumper();
+	case PATROLANDSPEEDUP:
+		AIPatrolAndSpeedUp(player);
 		break;
 
 	case WAITANDGO:
 		AIWaitAndGo(player);
 		break;
 	}
+
+	if ((isActive == true) && CheckCollision(player)) {
+		player->isActive = false;
+	}
 }
 
-//fix
+void Entity::Weapon(Entity* player, Entity* enemies, int enemyCount) {
+	position = player->position + glm::vec3(0.4f, 0.0f, 0.0f);
+}
+
 void Entity::Update(float deltaTime, Entity* player, Entity* objects, int objectCount) {
 	if (isActive == false) return;
 
@@ -106,6 +160,10 @@ void Entity::Update(float deltaTime, Entity* player, Entity* objects, int object
 
 	if (entityType == ENEMY) {
 		AI(player);
+	}
+
+	if (entityType == WEAPON) {
+		Weapon(player, objects, objectCount);
 	}
 
 	// Handling the jump
