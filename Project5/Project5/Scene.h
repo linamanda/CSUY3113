@@ -20,10 +20,11 @@ struct GameState {
 	Map* map;
 	Entity* player;
 	Entity* enemies;
+	Entity* weapon;
 	int nextScene;
 };
 
-enum SceneType { TITLE, GAME };
+enum SceneType { TITLE, GAME, WIN, LOSS };
 
 class Scene {
 public:
@@ -32,5 +33,6 @@ public:
 
 	virtual void Initialize() = 0;
 	virtual void Update(float deltaTime) = 0;
+	virtual void ProcessInput() = 0;
 	virtual void Render(ShaderProgram* program) = 0;
 };

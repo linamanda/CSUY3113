@@ -18,6 +18,8 @@
 #include "Scene.h"
 #include "Title.h"
 #include "Level1.h"
+#include "Level2.h"
+#include "Level3.h"
 
 SDL_Window* displayWindow;
 bool gameIsRunning = true;
@@ -29,7 +31,9 @@ Mix_Music* music;
 Mix_Chunk* bounce;
 
 Scene* currentScene;
-Scene* sceneList[2];
+Scene* sceneList[4];
+
+int lives;
 
 void SwitchToScene(Scene* scene) {
     currentScene = scene;
@@ -64,16 +68,21 @@ void Initialize() {
     // Initialize audio
     Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096);
 
-    music = Mix_LoadMUS("backgroundMusic.mp3");
+    music = Mix_LoadMUS("backgroundMusic.wav");
     Mix_PlayMusic(music, -1);
-    Mix_VolumeMusic(MIX_MAX_VOLUME);
+    Mix_VolumeMusic(MIX_MAX_VOLUME / 8);
 
     bounce = Mix_LoadWAV("bounce.wav");
-    Mix_Volume(-1, MIX_MAX_VOLUME / 4);
+    Mix_Volume(-1, MIX_MAX_VOLUME / 15);
+
+    // Initialize lives
+    lives = 3;
 
     // Set current scene
     sceneList[0] = new Title();
-    sceneList[1] = new Level1();
+    sceneList[1] = new Level1(&lives);
+    sceneList[2] = new Level2(&lives);
+    sceneList[3] = new Level3(&lives);
     SwitchToScene(sceneList[0]);
 
     // Enable transparancy
@@ -112,20 +121,24 @@ void ProcessInput() {
     }
 
     const Uint8* keys = SDL_GetKeyboardState(NULL);
-
     if (currentScene->type == GAME) {
-        if (keys[SDL_SCANCODE_A]) {
-            currentScene->state.player->movement.x = -1.0f;
-        }
-        else if (keys[SDL_SCANCODE_D]) {
-            currentScene->state.player->movement.x = 1.0f;
-        }
+        if (currentScene->type == GAME) {
+            if (keys[SDL_SCANCODE_A]) {
+                if(currentScene->state.player->position.x > 0)
+                    currentScene->state.player->movement.x = -1.0f;
+            }
+            else if (keys[SDL_SCANCODE_D]) {
+                if (currentScene->state.player->position.x < 9)
+                    currentScene->state.player->movement.x = 1.0f;
+            }
 
-
-        if (glm::length(currentScene->state.player->movement) > 1.0f) {
-            currentScene->state.player->movement = glm::normalize(currentScene->state.player->movement);
+            if (glm::length(currentScene->state.player->movement) > 1.0f) {
+                currentScene->state.player->movement = glm::normalize(currentScene->state.player->movement);
+            }
         }
     }
+
+    currentScene->ProcessInput();
 }
 
 // Update on fixed timestep
@@ -152,12 +165,18 @@ void Update() {
         // The scene will always update the same amount each time
         currentScene->Update(FIXED_TIMESTEP);
 
+        if (currentScene->type == GAME) {
+            if (currentScene->state.player->isActive == false && lives > 0) {
+                lives -= 1;
+                if (lives > 0)
+                    SwitchToScene(currentScene);
+            }
+        }
+
         deltaTime -= FIXED_TIMESTEP;
     }
 
     accumulator = deltaTime;
-
-    // player pos == 0,0,0
 
     if (currentScene->type == GAME) {
         viewMatrix = glm::mat4(1.0f);
@@ -177,11 +196,25 @@ void Render() {
     program.SetViewMatrix(viewMatrix);
 
     currentScene->Render(&program);
+    if (currentScene->type != TITLE) {
+        std::string livesStr = "Lives: " + std::to_string(lives);
+        Util::DrawText(&program, Util::LoadTexture("font.png"), livesStr, 0.5f, -0.25f, glm::vec3(currentScene->state.player->position.x - 0.75, currentScene->state.player->position.y + 0.75, 0));
+    }
+
+    if (currentScene->type == WIN) {
+        Util::DrawText(&program, Util::LoadTexture("font.png"), "You Win!", 1.0f, -0.5f, glm::vec3(2.75, -1, 0));
+    }
+    else if (currentScene->type == LOSS) {
+        Util::DrawText(&program, Util::LoadTexture("font.png"), "You Lose!", 1.0f, -0.5f, glm::vec3(2.5, currentScene->state.player->position.y, 0));
+    }
 
     SDL_GL_SwapWindow(displayWindow);
 }
 
 void Shutdown() {
+    Mix_FreeChunk(bounce);
+    Mix_FreeMusic(music);
+
     SDL_Quit();
 }
 
@@ -193,6 +226,8 @@ int main(int argc, char* argv[]) {
         Update();
 
         if (currentScene->state.nextScene >= 0) SwitchToScene(sceneList[currentScene->state.nextScene]);
+        
+        if (currentScene->type == GAME && lives <= 0) currentScene->type = LOSS;
 
         Render();
     }

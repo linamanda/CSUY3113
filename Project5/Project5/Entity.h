@@ -15,7 +15,7 @@
 
 enum EntityType { PLAYER, PLATFORM, ENEMY, WEAPON };
 
-enum AIType { PATROLLER, PATROLANDSPEEDUP, WAITANDGO };
+enum AIType { WALKDOWNANDSPEEDUP, WAITANDGO };
 enum AIState { IDLE, WALKING_LEFT, WALKING_RIGHT };
 
 class Entity {
@@ -59,8 +59,7 @@ public:
 	void Render(ShaderProgram* program);
 
 	void AI(Entity* player);
-	void AIPatroller();
-	void AIPatrolAndSpeedUp(Entity* player);
+	void AIWalkDownAndSpeedUp(Entity* player);
 	void AIWaitAndGo(Entity* player);
 
 	void Weapon(Entity* player, Entity* enemies, int enemyCount);

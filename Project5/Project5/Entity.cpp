@@ -130,35 +130,23 @@ void Entity::CheckCollisionsX(Entity* objects, int objectCount) {
 	}
 }
 
-void Entity::AIPatroller() {
-	if ((aiState == WALKING_LEFT) && (position.x > -1.75))
+void Entity::AIWalkDownAndSpeedUp(Entity* player) {
+	if ((aiState == WALKING_LEFT) && (position.x > 0.0f))
 		movement = glm::vec3(-1, 0, 0);
 	else
 		aiState = WALKING_RIGHT;
 
-	if ((aiState == WALKING_RIGHT) && (position.x < 0.75))
-		movement = glm::vec3(1, 0, 0);
-	else
-		aiState = WALKING_LEFT;
-}
-
-void Entity::AIPatrolAndSpeedUp(Entity* player) {
-	if ((aiState == WALKING_LEFT) && (position.x > 2.0f))
-		movement = glm::vec3(-1, 0, 0);
-	else
-		aiState = WALKING_RIGHT;
-
-	if ((aiState == WALKING_RIGHT) && (position.x < 4.5f))
+	if ((aiState == WALKING_RIGHT) && (position.x < 9.0f))
 		movement = glm::vec3(1, 0, 0);
 	else
 		aiState = WALKING_LEFT;
 
 	if ((glm::distance(position, player->position) < 3.0f)) {
-		if ((player->position.x < position.x) && (position.x > 2.0f)) {
+		if ((player->position.x < position.x) && (position.x > 0.0f)) {
 			movement = glm::vec3(-1, 0, 0);
 			speed = 2.0f;
 		}
-		else if ((player->position.x > position.x) && (position.x < 4.5f)) {
+		else if ((player->position.x > position.x) && (position.x < 10.0f)) {
 			movement = glm::vec3(1, 0, 0);
 			speed = 2.0f;
 		}
@@ -192,12 +180,8 @@ void Entity::AIWaitAndGo(Entity* player) {
 
 void Entity::AI(Entity* player) {
 	switch (aiType) {
-	case PATROLLER:
-		AIPatroller();
-		break;
-
-	case PATROLANDSPEEDUP:
-		AIPatrolAndSpeedUp(player);
+	case WALKDOWNANDSPEEDUP:
+		AIWalkDownAndSpeedUp(player);
 		break;
 
 	case WAITANDGO:
@@ -252,6 +236,10 @@ void Entity::Update(float deltaTime, Entity* player, Entity* objects, int object
 
 	modelMatrix = glm::mat4(1.0f);
 	modelMatrix = glm::translate(modelMatrix, position);
+
+	if (entityType == WEAPON) {
+		modelMatrix = glm::rotate(modelMatrix, -0.78f, glm::vec3(0, 0, 1.0));
+	}
 }
 
 void Entity::Render(ShaderProgram* program) {

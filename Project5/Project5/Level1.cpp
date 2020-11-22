@@ -9,7 +9,7 @@ unsigned int level1_data[] =
 {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+    4, 1, 1, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -33,12 +33,16 @@ unsigned int level1_data[] =
     2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
 };
 
+Level1::Level1(int* livesInp) {
+    lives = livesInp;
+}
+
 void Level1::Initialize() {
     state.nextScene = -1;
     type = GAME;
 
     GLuint mapTextureID = Util::LoadTexture("tileset.png");
-    state.map = new Map(LEVEL1_WIDTH, LEVEL1_HEIGHT, level1_data, mapTextureID, 1.0f, 4, 1);
+    state.map = new Map(LEVEL1_WIDTH, LEVEL1_HEIGHT, level1_data, mapTextureID, 1.0f, 5, 1);
 
     // Initialize Game Objects
 
@@ -70,31 +74,69 @@ void Level1::Initialize() {
 
     state.player->jumpPower = 6.0f;
 
+    state.player->isActive = true;
+
     // Initialize Enemies
-    /*
     state.enemies = new Entity[LEVEL1_ENEMY_COUNT];
-    GLuint enemyTextureID = Util::LoadTexture("ctg.png");
+    GLuint enemyTextureID = Util::LoadTexture("dogEnemy.png");
 
     state.enemies[0].entityType = ENEMY;
     state.enemies[0].textureID = enemyTextureID;
-    state.enemies[0].position = glm::vec3(4, -2.25f, 0);
+    state.enemies[0].vertices = new float[12]{ -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f };
+    state.enemies[0].position = glm::vec3(5, -10, 0);
+    state.enemies[0].acceleration = glm::vec3(0, -9.81, 0);
     state.enemies[0].speed = 1;
+
+    state.enemies[0].height = 0.95f;
+    state.enemies[0].width = 0.8f;
 
     state.enemies[0].aiType = WAITANDGO;
     state.enemies[0].aiState = IDLE;
 
-    state.enemies[0].isActive = false;*/
+    state.enemies[0].isActive = true;
+
+    // Initialize weapon
+    state.weapon = new Entity();
+    state.weapon->entityType = WEAPON;
+    state.weapon->textureID = Util::LoadTexture("sword.png");
+    state.weapon->vertices = new float[12]{ -0.1f, -0.25f, 0.1f, -0.25f, 0.1f, 0.25f, -0.1f, -0.25f, 0.1f, 0.25f, -0.1f, 0.25f };
+    state.weapon->Update(0, state.player, state.enemies, LEVEL1_ENEMY_COUNT, state.map);
 }
 
 void Level1::Update(float deltaTime) {
     state.player->Update(deltaTime, state.player, NULL, 0, state.map);
+    state.weapon->Update(deltaTime, state.player, state.enemies, LEVEL1_ENEMY_COUNT, state.map);
 
-    if ((state.player->position.x >= -5) && (state.player->position.x <= -3.0f) && (state.player->position.y >= 20)) {
+    for (int i = 0; i < LEVEL1_ENEMY_COUNT; i++) {
+        state.enemies[i].Update(deltaTime, state.player, NULL, 0, state.map);
+    }
+
+    if ((state.player->position.x >= 0) && (state.player->position.x <= 0.25) && (state.player->position.y >= -1)) {
         state.nextScene = 2;
+    }
+}
+
+void Level1::ProcessInput() {
+    const Uint8* keys = SDL_GetKeyboardState(NULL);
+    if (type == GAME) {
+        if (keys[SDL_SCANCODE_M]) {
+            for (int i = 0; i < LEVEL1_ENEMY_COUNT; i++) {
+                if ((state.weapon->isActive == true) && state.weapon->CheckCollision(&state.enemies[i])) {
+                    state.enemies[i].isActive = false;
+                }
+            }
+        }
     }
 }
 
 void Level1::Render(ShaderProgram* program) {
     state.map->Render(program);
-    state.player->Render(program);
+
+    for (int i = 0; i < (LEVEL1_ENEMY_COUNT); i++)
+        if (state.enemies[i].isActive && state.player->isActive) state.enemies[i].Render(program);
+
+    if (state.player->isActive) {
+        state.player->Render(program);
+        state.weapon->Render(program);
+    }
 }

@@ -1,2 +1,3 @@
-﻿  main.cpp
+﻿  Title.cpp
+C:\Users\Amanda\CSUY3113\Project5\Project5\Title.cpp(23,158): warning C4305: 'argument': truncation from 'double' to 'float'
   Project5.vcxproj -> C:\Users\Amanda\CSUY3113\Project5\Debug\Project5.exe
