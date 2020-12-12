@@ -1,0 +1,13 @@
+﻿  Level1.cpp
+C:\Users\Amanda\CSUY3113\Project6\Project6\Level1.cpp(101,23): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+C:\Users\Amanda\CSUY3113\Project6\Project6\Level1.cpp(102,55): warning C4244: '=': conversion from 'int' to 'T', possible loss of data
+          with
+          [
+              T=float
+          ]
+C:\Users\Amanda\CSUY3113\Project6\Project6\Level1.cpp(103,43): warning C4244: '=': conversion from 'int' to 'T', possible loss of data
+          with
+          [
+              T=float
+          ]
+  Project6.vcxproj -> C:\Users\Amanda\CSUY3113\Project6\Debug\Project6.exe
