@@ -24,7 +24,7 @@ struct GameState {
 	int nextScene;
 };
 
-enum SceneType { TITLE, GAME, WIN, LOSS };
+enum SceneType { TITLE, STORY, GAME, WIN, LOSS };
 
 class Scene {
 public:

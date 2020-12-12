@@ -15,12 +15,15 @@
 
 enum EntityType { PLAYER, PLATFORM, ENEMY, WEAPON };
 
-enum AIType { WALKDOWNANDSPEEDUP, WAITANDGO };
-enum AIState { IDLE, WALKING };
+enum EntityDirection { LEFT, RIGHT, UP, DOWN };
+
+enum AIType { PACEANDSPEEDUP, WAITANDGO };
+enum AIState { IDLE, WALKING, WALKINGLEFT, WALKINGRIGHT };
 
 class Entity {
 public:
 	EntityType entityType;
+	EntityDirection entityDirection;
 	AIType aiType;
 	AIState aiState;
 
@@ -78,6 +81,7 @@ public:
 	void Render(ShaderProgram* program);
 
 	void AI(Entity* player);
+	void AIPaceAndSpeedUp(Entity* player);
 	void AIWalkDownAndSpeedUp(Entity* player);
 	void AIWaitAndGo(Entity* player);
 

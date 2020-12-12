@@ -12,6 +12,8 @@ Entity::Entity() {
 
 // Check if this Entity collides with another indicated entity
 bool Entity::CheckCollision(Entity* other) {
+	if (this == other) return false;
+
 	if (isActive == false || other->isActive == false) return false;
 
 	float xdiff = fabs(position.x - other->position.x) - ((width + other->width) / 2.0f);
@@ -161,10 +163,58 @@ void Entity::AIWaitAndGo(Entity* player) {
 	}
 }
 
+void Entity::AIPaceAndSpeedUp(Entity* player) {
+	if ((aiState == WALKINGLEFT) && (position.x > 0.0f)) {
+		movement = glm::vec3(-1, 0, 0);
+		animIndices = animLeft;
+	}
+	else
+		aiState = WALKINGRIGHT;
+
+	if ((aiState == WALKINGRIGHT) && (position.x < 9.0f)) {
+		movement = glm::vec3(1, 0, 0);
+		animIndices = animRight;
+	}
+	else
+		aiState = WALKINGLEFT;
+
+	if ((glm::distance(position, player->position) < 5.0f) && (glm::distance(position.x, player->position.x) > glm::distance(position.y, player->position.y))) {
+		speed = 3.0f;
+		if (player->position.x <= position.x) {
+			movement = glm::vec3(-1, 0, 0);
+			animIndices = animLeft;
+			aiState = WALKINGLEFT;
+		}
+		if (player->position.x > position.x) {
+			movement = glm::vec3(1, 0, 0);
+			animIndices = animRight;
+			aiState = WALKINGRIGHT;
+		}
+	}
+	else if ((glm::distance(position, player->position) < 5.0f) && (glm::distance(position.x, player->position.x) < glm::distance(position.y, player->position.y))) {
+		speed = 3.0f;
+		if (player->position.y > position.y) {
+			movement = glm::vec3(0, 1, 0);
+			animIndices = animUp;
+		}
+		if (player->position.y <= position.y) {
+			movement = glm::vec3(0, -1, 0);
+			animIndices = animDown;
+		}
+	}
+	else {
+		speed = 1.0f;
+		aiState = WALKINGLEFT;
+	}
+}
+
 void Entity::AI(Entity* player) {
 	switch (aiType) {
 	case WAITANDGO:
 		AIWaitAndGo(player);
+		break;
+	case PACEANDSPEEDUP:
+		AIPaceAndSpeedUp(player);
 		break;
 	}
 
@@ -174,7 +224,21 @@ void Entity::AI(Entity* player) {
 }
 
 void Entity::Weapon(Entity* player, Entity* enemies, int enemyCount) {
-	position = player->position + glm::vec3(0.4f, 0.0f, 0.0f);
+	if (player->entityDirection == RIGHT) {
+		position = player->position + glm::vec3(0.4f, 0.0f, 0.0f);
+	}
+
+	if (player->entityDirection == LEFT) {
+		position = player->position + glm::vec3(-0.4f, 0.0f, 0.0f);
+	}
+
+	if (player->entityDirection == UP) {
+		position = player->position + glm::vec3(0.0f, 0.4f, 0.0f);
+	}
+
+	if (player->entityDirection == DOWN) {
+		position = player->position + glm::vec3(0.0f, -0.4f, 0.0f);
+	}
 }
 
 void Entity::Update(float deltaTime, Entity* player, Entity* objects, int objectCount, Map* map) {
@@ -239,10 +303,6 @@ void Entity::Update(float deltaTime, Entity* player, Entity* objects, int object
 
 	modelMatrix = glm::mat4(1.0f);
 	modelMatrix = glm::translate(modelMatrix, position);
-
-	if (entityType == WEAPON) {
-		modelMatrix = glm::rotate(modelMatrix, -0.78f, glm::vec3(0, 0, 1.0));
-	}
 }
 
 void Entity::DrawSpriteFromTextureAtlas(ShaderProgram* program, GLuint textureID, int index)
